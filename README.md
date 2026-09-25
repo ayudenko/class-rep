@@ -2,6 +2,8 @@
 
 Русскоязычное пространство школьного класса: реальные аккаунты учителя, учеников и родителей, анкеты, расписание, домашние задания и награды. React/TypeScript + Node/Express + SQLite, iOS и Android на Capacitor 8. Название рабочее.
 
+Исходный код: [GitHub — ayudenko/class-rep](https://github.com/ayudenko/class-rep).
+
 ## Локальный запуск
 
 Нужен Node.js >=22.13 и npm.
@@ -23,7 +25,7 @@ npm start
 
 ## Один production-сервер
 
-Нужны выбранный вами домен, HTTPS reverse proxy и постоянный том для базы. Публичное размещение и публикация в магазинах не выполнялись. Веб использует API того же origin, поэтому **при веб-сборке оставьте VITE_API_URL пустым**. Не используйте native dist для веб-развёртывания.
+Приложение развёрнуто на [Fly.io](https://klassno-school-ayudenko.fly.dev); конфигурация и обслуживание описаны ниже. Для самостоятельного размещения нужны домен, HTTPS reverse proxy и постоянный том для базы. Публикация в магазинах не выполнялась. Веб использует API того же origin, поэтому **при веб-сборке оставьте VITE_API_URL пустым**. Не используйте native dist для веб-развёртывания.
 
 ```sh
 docker build -t klassno .
@@ -52,4 +54,44 @@ docker exec -it klassno npm run reset-password -- USER_LOGIN
 
 ## iOS и Android
 
-Реальные проекты находятся в `ios/` и `android/`. Смотрите [сборку приложений](docs/mobile.md) и [результаты проверки](docs/validation.md). Проекты не заменяют подписанный выпуск: рабочий публичный сервер, подпись и аккаунты магазинов предоставляются отдельно.
+Реальные проекты находятся в `ios/` и `android/`. Смотрите [сборку приложений](docs/mobile.md) и [результаты проверки](docs/validation.md). Публичный API доступен на Fly.io. Проекты не заменяют подписанный выпуск: подпись и аккаунты магазинов предоставляются отдельно.
+
+
+## Развёртывание на Fly.io
+
+`fly.toml` настроен для `klassno-school-ayudenko`, региона Frankfurt (`fra`), одной Machine `shared-cpu-1x` с 512 MB RAM и тома `klassno_data` размером 1 GB. Приложение развёрнуто по адресу https://klassno-school-ayudenko.fly.dev; remote Docker build и `flyctl deploy` завершились успешно. Веб-сборка использует same-origin API; секреты и тестовая база не входят в Docker build context.
+
+Для первого развёртывания в авторизованном аккаунте (уже существующие приложение/том повторно не создавайте):
+
+```sh
+flyctl apps create klassno-school-ayudenko --org personal
+flyctl volumes create klassno_data --app klassno-school-ayudenko --region fra --size 1
+flyctl config validate
+flyctl deploy --remote-only --ha=false
+flyctl status
+flyctl checks list
+curl --fail https://klassno-school-ayudenko.fly.dev/api/health
+```
+
+Флаг `--ha=false` исключает автоматическое создание дополнительной Machine при первой поставке. Поддерживайте ровно один экземпляр: SQLite находится на локальном томе, репликации между Machines нет. Автоматическая остановка выключена, HTTPS включён. Fly выставляет счёт за используемые ресурсы по условиям аккаунта.
+
+База хранится в `/data/klassno/klassno.sqlite`. При старте `docker/entrypoint.sh` кратковременно работает от root: создаёт `/data/klassno` с владельцем `node` и правами 700, задаёт права 600 и владельца `node` существующим файлам БД/WAL/SHM, отклоняет symlink для каталога и этих файлов, затем запускает сервер через `gosu node:node`. Корень тома и чужие файлы не меняются. Сервер работает без root. Health endpoint `/api/health` проверяет доступность соединения SQLite и отдаёт только `{"status":"ok"}` без аккаунтов и сессий.
+
+Последующие обновления: `flyctl deploy --remote-only --ha=false`; после обновления проверьте health, вход и сохранённые классы. Для диагностики используйте `flyctl logs` и `flyctl checks list`. Первому учителю нужно самостоятельно зарегистрироваться на сайте; предустановленных логинов нет. Адрес уже включён в ALLOWED_ORIGINS вместе с двумя native origins. При смене домена одновременно обновите PUBLIC_URL и ALLOWED_ORIGINS.
+
+Одноразовое восстановление пароля на текущей Machine:
+
+```sh
+flyctl ssh console -C 'gosu node:node npm run reset-password -- USER_LOGIN'
+```
+
+Сначала проверьте личность владельца; вывод содержит секретную ссылку, которую нужно передать лично. Для резервирования используйте snapshots тома и отдельные резервные копии; наличие одного тома не обеспечивает отказоустойчивость. Не удаляйте Machine/том ради обновления и не масштабируйте сервер до нескольких экземпляров без пересмотра хранения.
+
+Для мобильной сборки с публичным API:
+
+```sh
+VITE_API_URL=https://klassno-school-ayudenko.fly.dev \
+VITE_WEB_URL=https://klassno-school-ayudenko.fly.dev npm run mobile:sync
+```
+
+Настройки основаны на [справочнике Fly configuration](https://fly.io/docs/reference/configuration/) и [описании Fly Volumes](https://fly.io/docs/volumes/overview/).

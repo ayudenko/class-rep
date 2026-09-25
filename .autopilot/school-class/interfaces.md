@@ -27,3 +27,9 @@ React/TypeScript/Vite/Capacitor8, Node Express + node:sqlite. T01 создаёт
 
 ## Из таска 01 — подтверждённый контракт
 Точные общие интерфейсы и схема: `core-contract.md` в корне, прочитать полностью. createApp({dbPath,origins,production})->{app,db,ctx,close}; ctx.requireUser middleware, ctx.requireTeacher(user,classId), ctx.accessibleStudentIds(user,classId), ctx.HttpError/text/date/id. User role глобальная, проверка teacher ownership/parent_links на классе. registerScheduleRoutes(app,ctx) / registerHomeworkRoutes(app,ctx) сами навешивают requireUser. Frontend api<T>(path,RequestInit); useSession; useClassroom; feature pages default export без props. Команды: npm run dev (localhost5173+API3000), npm run build, npm start, npm test; single node --test tests/auth.test.mjs.
+
+## Из таска 02 — расписание
+registerScheduleRoutes(app,ctx). /api/classes/:id/{lessons,bells}: GET array, POST201; /:itemId PUT DTO DELETE204. Lesson{id,classId,dayOfWeek,lessonNumber,subject,room}; Bell{id,classId,lessonNumber,startTime,endTime}. Validation400, role/membership403, foreign/missing item404, slot/interval409. 3 HTTP tests, cross-family, CRUD/conflict.
+
+## Из таска 03 — ДЗ и награды
+Полный контракт DTO/API — `src/features/homework/CONTRACT.md`. registerHomeworkRoutes(app,ctx), HomeworkPage/AwardsPage default no props. CRUD /api/classes/:id/homework и /api/homework/:id; PUT completion; POST awards; GET /api/classes/:id/awards. Пороги1/5/10 текущих различных выполнений; earned awards не отнимаются после снятия completion или удаления ДЗ.

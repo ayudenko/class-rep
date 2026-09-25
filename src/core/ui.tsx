@@ -1,0 +1,7 @@
+import {useEffect,useRef,type ButtonHTMLAttributes,type InputHTMLAttributes,type ReactNode} from 'react';
+import {Sparkles,X} from 'lucide-react';
+export function Button({variant='primary',className='',...props}:ButtonHTMLAttributes<HTMLButtonElement>&{variant?:'primary'|'secondary'|'ghost'|'danger'}){return <button className={`button ${variant} ${className}`} {...props}/>;}
+export function Input({label,error,...props}:InputHTMLAttributes<HTMLInputElement>&{label:string;error?:string}){return <label className="field"><span>{label}</span><input {...props}/>{error&&<small className="error">{error}</small>}</label>;}
+export function Dialog({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){const ref=useRef<HTMLDialogElement>(null);useEffect(()=>{ref.current?.showModal();const dialog=ref.current;return()=>dialog?.close();},[]);return <dialog ref={ref} onCancel={onClose} onClick={e=>{if(e.target===e.currentTarget)onClose();}}><div className="dialog-head"><h2>{title}</h2><button className="icon-button" aria-label="Закрыть" onClick={onClose}><X size={22}/></button></div>{children}</dialog>;}
+export function EmptyState({title,description,action,icon}:{title:string;description?:string;action?:ReactNode;icon?:ReactNode}){return <div className="empty-state"><div className="empty-icon">{icon||<Sparkles size={30}/>}</div><h2>{title}</h2>{description&&<p>{description}</p>}{action}</div>;}
+export function ErrorMessage({message}:{message:string}){return message?<p role="alert" className="error-message">{message}</p>:null;}

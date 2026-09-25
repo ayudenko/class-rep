@@ -28,3 +28,13 @@
 ## T04 production smoke root
 NODE_ENV=production, отдельная SQLite /private/tmp/school-production-qa.sqlite, localhost:3001. Успешны: HTML и реальный JS asset200; регистрация201; cookie Secure+HttpOnly; /me200; создание класса201; чужой Origin403; logout204 и старая сессия401. Пароли и cookie не выводились. Это локальная production-проверка, не публичное HTTPS-развёртывание.
 Live hash-приглашение после исправления T04 открывается без reload, повторно использованное даёт правильную ошибку.
+
+## Независимая приёмка и публикация
+- Blind agent /root/blind_acceptance прочитал только исходный brief и фактический код, выполнил 38 HTTP status checks + содержимое ответов; все прошли. Native признан частичным, как в manifest; противоречий нет.
+- T05 craft reviewer: clean. Health test поднял suite до 14 passing. Remote Docker build и deploy Fly.io успешны, одна machine d8d5459a39d358, fra, volume klassno_data 1GB snapshots7days.
+- Public HTTPS health из VM:200. В текущей локальной сети DNS/ClientHello reset препятствуют browser QA публичного адреса; локальная browser QA ранее пройдена. TLS не отключался.
+- GitHub ayudenko/class-rep был пустым, push master92ce870 успешен, remote SHA сверён.
+- Android пересобран с HTTPS backend и cleartext=false; новый APK SHA027de23e7d6370a4262022454b506241b1cb080927bf8066bd8ada42d23a40f2.
+- Closing process deviation: runtime thread limit не позволил три новых агента памяти; memory/ADR исполнены раздельными завершёнными агентами с ограниченными источниками, blind checker был новым.
+
+- Final public smoke from Fly VM: HTTPS HTML/JS/API, register/login/SecureCookie/Origin403/logout; same password and class persisted after second restart; own QA account/class/sessions and secret files removed precisely; finalhealth200. Local public browser QA remains DNS/TLS-limited.

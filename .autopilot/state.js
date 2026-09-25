@@ -10,13 +10,14 @@ window.STATE =
   "memoryFile": "AGENTS.md",
   "skillDir": "/Users/a.yudenko/.agents/skills/autopilot",
   "startedAt": "2026-09-25T11:29:26.584069+03:00",
-  "updatedAt": "2026-09-25T13:01:41.495927+03:00",
-  "finishedAt": null,
+  "updatedAt": "2026-09-25T13:10:42.878838+03:00",
+  "finishedAt": "2026-09-25T13:10:42.878838+03:00",
   "stages": [
     {
       "id": "preflight",
       "status": "done",
-      "startedAt": "2026-09-25T11:29:26.584069+03:00"
+      "startedAt": "2026-09-25T11:29:26.584069+03:00",
+      "finishedAt": "2026-09-25T11:29:26.584069+03:00"
     },
     {
       "id": "manifest",
@@ -59,15 +60,16 @@ window.STATE =
     },
     {
       "id": "final",
-      "status": "active",
+      "status": "done",
       "startedAt": "2026-09-25T12:54:47.964658+03:00",
-      "note": "Дополнительный запрос пользователя: публикация Fly.io и push GitHub"
+      "note": "Веб опубликован, GitHub push выполнен; iOS остаётся открытым ограничением",
+      "finishedAt": "2026-09-25T13:10:42.878838+03:00"
     }
   ],
   "requirements": {
     "total": 18,
-    "done": 13,
-    "inTicket": 2,
+    "done": 15,
+    "inTicket": 0,
     "inSpec": 0,
     "placeholder": 3,
     "deferred": 0,
@@ -221,29 +223,33 @@ window.STATE =
         "G04",
         "G05"
       ],
-      "status": "active",
+      "status": "done",
       "retries": 0,
       "repairs": 0,
-      "handoffs": 0
+      "handoffs": 0,
+      "wave": 4,
+      "blockedBy": [
+        "04"
+      ],
+      "commit": "92ce870",
+      "tests": {
+        "passed": 14,
+        "failed": 0
+      },
+      "finishedAt": "2026-09-25T13:10:42.878838+03:00"
     }
   ],
   "singlePass": null,
   "tests": {
-    "passed": 13,
+    "passed": 14,
     "failed": 0
   },
   "debt": {
     "placeholders": [
-      "iOS бинарник: Xcode не содержит требуемый CoreSimulator.framework; исходный проект готов",
-      "Публичный HTTPS сервер/домен пока не выбран; Android APK для локальной проверки"
+      "iOS бинарник: требуется первоначальная настройка и лицензия Xcode; native runtime ещё не проверен"
     ],
     "assumptions": [],
-    "emptyEnv": [
-      "VITE_API_URL",
-      "VITE_WEB_URL",
-      "PUBLIC_URL",
-      "ALLOWED_ORIGINS"
-    ]
+    "emptyEnv": []
   },
   "additions": [],
   "coverage": {
@@ -254,9 +260,10 @@ window.STATE =
   },
   "concerns": [
     "REPORT: iOS требует первого запуска Xcode с принятием лицензии владельцем Mac",
-    "REPORT: Android APK local-debug; native runtime и release подпись не проверены",
-    "REPORT: Docker daemon отсутствует, образ не собран",
-    "REPORT: Capacitor CLI dev-only chain имеет3moderate npm audit advisories"
+    "REPORT: Android debug APK подключён к публичному HTTPS API; native runtime и release подпись не проверены",
+    "RESOLVED: Docker image успешно собран удалённо на Fly.io",
+    "REPORT: Capacitor CLI dev-only chain имеет 3 moderate npm audit advisories",
+    "REPORT: Публичный HTTPS работает из Fly VM; локальная сеть блокирует DNS/TLS, browser QA публичного адреса не подтверждена"
   ],
   "reviewers": {
     "manifestSpec": "/root/requirements_review",
@@ -267,6 +274,19 @@ window.STATE =
     "verdict": "No blocking drift",
     "checks": 38,
     "tests": 13,
-    "notes": "HTTP roles/classes/schedules/homework/awards/invites passed; native partial as manifest; root independently verified browser UI."
+    "notes": "HTTP roles/classes/schedules/homework/awards/invites passed; native partial as manifest; root independently verified browser UI.",
+    "matched": 13,
+    "checked": 15,
+    "mismatches": []
+  },
+  "deployment": {
+    "url": "https://klassno-school-ayudenko.fly.dev",
+    "repository": "https://github.com/ayudenko/class-rep",
+    "branch": "master",
+    "machine": "d8d5459a39d358",
+    "region": "fra",
+    "volume": "klassno_data",
+    "smoke": "Public HTTPS auth/class persistence passed after restart; QA data removed; health200",
+    "browserLimit": "Local DNS/TLS blocked public browser check"
   }
 }

@@ -36,7 +36,7 @@
 
 - Исходный код: https://github.com/ayudenko/class-rep. `fly.toml`: приложение `klassno-school-ayudenko`, регион `fra`, `shared-cpu-1x`/512 MB, том `klassno_data` 1 GB в `/data`; `DB_PATH=/data/klassno/klassno.sqlite`. Держать один экземпляр: SQLite не реплицируется между Machines.
 - `flyctl deploy --remote-only --ha=false`; диагностика — `flyctl status`, `flyctl checks list`, `flyctl logs`. Настроены HTTPS, отключён autostop, probe `/api/health` проверяет SQLite без авторизации и не выдаёт данные пользователей.
-- Docker собирает веб отдельно; `docker/entrypoint.sh` готовит только `/data/klassno` и файлы БД, ограничивает права, отклоняет symlink и запускает сервер как `node` через gosu. Не заменять production путь локальным `data/klassno.sqlite` и не удалять том при обновлении.
+- Docker собирает веб отдельно; `docker/entrypoint.sh` готовит только `/data/klassno` и файлы БД, ограничивает права, отклоняет symlink и запускает сервер как `node` через gosu. Не заменять production путь локальным `data/klassno.sqlite` и не удалять том при обновлении. Root filesystem Machine и `/tmp` временные; постоянные данные хранить только на томе.
 
 ## Проверки и ограничения
 

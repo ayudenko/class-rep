@@ -1,0 +1,1 @@
+Готово: tests16passed/buildpassed. Независимый craftreview clean. CUA изолированнаялокальнаяБД: Biology normalized->2026-09-28, Math->2026-10-02 на пятницу2026-09-25, unknownsubject->blank; ручной2026-10-05 сохранён при сменеsubject и отправке; existingedit retain2026-10-05 даже при сменеsubject. Production данные не менялись.

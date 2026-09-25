@@ -58,7 +58,15 @@ All columns NOT NULL except explicitly nullable above. No feature migrations nee
 - Student = {id,classId,userId,fullName,login,birthDate,parentName,parentPhone,parentEmail,privateNote?}; privateNote teacher only.
 
 ## Feature HTTP conventions
-Schedule: GET/POST /api/classes/:id/lessons, PUT/DELETE /api/classes/:id/lessons/:itemId; same /bells. GET returns arrays, POST 201 DTO, PUT DTO, DELETE 204. DTO camelCase mapped exactly from schema.
+Schedule:
+- `GET /api/classes/:id/lessons` → `Lesson[]`, упорядоченные по `dayOfWeek`, затем `lessonNumber`.
+- `POST /api/classes/:id/lessons {dayOfWeek,subject,room?}` → 201 `Lesson`: добавление в конец выбранного дня, номер назначает сервер.
+- `PUT /api/classes/:id/lessons/:itemId {dayOfWeek,subject,room?}` → `Lesson`: в том же дне сохраняет позицию; при смене дня добавляет в конец нового дня и уплотняет старый.
+- `DELETE /api/classes/:id/lessons/:itemId` → 204: удаление уплотняет оставшийся порядок дня.
+- `PUT /api/classes/:id/lessons/order {dayOfWeek,lessonIds:string[]}` → `Lesson[]` всего класса в актуальном порядке. `lessonIds` — полный набор ID уроков указанного дня в желаемой последовательности, без повторов; пустой массив допустим только для пустого дня. Недопустимый формат/дубли → 400; неполный набор, лишние/чужие ID или изменившийся состав дня → 409 без частичного сохранения. Менять порядок может только учитель этого класса; ученики и родители читают.
+- `Lesson = {id,classId,dayOfWeek,lessonNumber,subject,room}`. `dayOfWeek` — 1..7, понедельник=1; `lessonNumber` в ответе — позиция 1..N. До 20 уроков в дне, превышение при добавлении/переносе → 409. В POST/PUT поле `lessonNumber` больше не управляет позицией: если старый клиент его передаёт, допустимость целого 1..20 проверяется, затем значение игнорируется.
+- Изменения порядка атомарны, ID уроков сохраняются. Схема БД не меняется, миграция не нужна: при записи затронутого дня позиции приводятся к непрерывным 1..N; сама загрузка существующего расписания его не перенумеровывает.
+- Звонки сохраняют ручной `lessonNumber`: GET/POST `/api/classes/:id/bells`, PUT/DELETE `/api/classes/:id/bells/:itemId`; GET → массив, POST → 201 DTO, PUT → DTO, DELETE → 204. `Bell = {id,classId,lessonNumber,startTime,endTime}`. Время связано с позицией урока через `lessonNumber`, поэтому после перестановки предмет получает время нового слота; сами звонки не переставляются.
 Homework: GET/POST /api/classes/:id/homework, GET/PUT/DELETE /api/homework/:id, PUT /api/homework/:id/completion, POST /api/homework/:id/awards, GET /api/classes/:id/awards. Child filtering via optional `?studentId=` query; guard that selected student is in accessibleStudentIds. Teacher can inspect whole class. Feature defines final response enrichment and documents it.
 
 ## Frontend shared contracts
